@@ -1,8 +1,23 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import { useState } from "react";
+import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
+import {
+  Heading,
+  Box,
+  Flex,
+  Input,
+  Stack,
+  IconButton,
+  useToast,
+} from "@chakra-ui/react";
 
-export default function Home() {
+import Image from "next/image";
+import styles from "../styles/Home.module.css";
+
+export default function Home(results) {
+  const initialState = results;
+  const [characters, setCharacters] = useState(initialState.characters);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -13,11 +28,11 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+          Welcome to <a href="https://nextjs.org">Akbar Gantenk</a>
         </h1>
 
         <p className={styles.description}>
-          Get started by editing{' '}
+          Get started by editing{" "}
           <code className={styles.code}>pages/index.js</code>
         </p>
 
@@ -58,12 +73,54 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
+          Powered by{" "}
           <span className={styles.logo}>
             <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
           </span>
         </a>
       </footer>
     </div>
-  )
+  );
+}
+export async function getStaticProps() {
+  const client = new ApolloClient({
+    uri: "https://rickandmortyapi.com/graphql/",
+    cache: new InMemoryCache(),
+  });
+  const { data } = await client.query({
+    query: gql`
+      query {
+        characters(page: 1) {
+          info {
+            count
+            pages
+          }
+          results {
+            name
+            id
+            location {
+              id
+              name
+            }
+            origin {
+              id
+              name
+            }
+            episode {
+              id
+              episode
+              air_date
+            }
+            image
+          }
+        }
+      }
+    `,
+  });
+
+  return {
+    props: {
+      characters: data.characters.results,
+    },
+  };
 }
